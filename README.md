@@ -36,7 +36,7 @@ An example using Apollo Client and Express in NodeJS
       }
     `;
 
-    export default (req, res) => {
+    export default async (req, res) => {
       const client = new ApolloClient({
         ssrMode: true,
         link: new HttpLink({
@@ -52,36 +52,36 @@ An example using Apollo Client and Express in NodeJS
       });
 
 
-        // Start Redirection lookup.
-        const {
-          data: {
-            redirections: { nodes: redirections },
-          },
-        } = await client.query({
-          query: REDIRECTION_QUERY,
-          variables: { matchUrl: req.baseUrl + req.path },
+      // Start Redirection lookup.
+      const {
+        data: {
+          redirections: { nodes: redirections },
+        },
+      } = await client.query({
+        query: REDIRECTION_QUERY,
+        variables: { matchUrl: req.baseUrl + req.path },
+      });
+
+      if (redirections?.length > 0) {
+        let newUrl = "";
+        let code = 301;
+
+        redirections.reverse().forEach((r) => {
+          if (
+            "url" === r.actionType &&
+            r.actionData.replace(/^[\s\uFEFF\xA0\/]+|[\s\uFEFF\xA0\/]+$/g, "") !==
+              r.matchUrl.replace(/^[\s\uFEFF\xA0\/]+|[\s\uFEFF\xA0\/]+$/g, "")
+          ) {
+            newUrl = r.actionData;
+            code = r.actionCode;
+          }
         });
 
-        if (redirections?.length > 0) {
-          let newUrl = "";
-          let code = 301;
-
-          redirections.reverse().forEach((r) => {
-            if (
-              "url" === r.actionType &&
-              r.actionData.replace(/^[\s\uFEFF\xA0\/]+|[\s\uFEFF\xA0\/]+$/g, "") !==
-                r.matchUrl.replace(/^[\s\uFEFF\xA0\/]+|[\s\uFEFF\xA0\/]+$/g, "")
-            ) {
-              newUrl = r.actionData;
-              code = r.actionCode;
-            }
-          });
-
-          if (newUrl) {
-            return res.redirect(code, newUrl);
-          }
+        if (newUrl) {
+          return res.redirect(code, newUrl);
         }
-        // End Redirection lookup.
+      }
+      // End Redirection lookup.
 
       .. the rest of your page code
     }
