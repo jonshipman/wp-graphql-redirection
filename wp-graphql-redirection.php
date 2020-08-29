@@ -19,19 +19,16 @@ this software, even if advised of the possibility of such damage.
 ============================================================================================================
 */
 
-require_once 'includes/functions.php';
-require_once 'includes/types.php';
-require_once 'includes/resolvers.php';
-
 add_action(
 	'plugins_loaded',
 	function() {
 
 		// Checks to see if Redirection is installed.
 		// Then deactivate.
-		if ( ! defined( 'REDIRECTION_FILE' ) ) {
-			deactivate_plugins( __FILE__ );
-		} else {
+		if ( defined( 'REDIRECTION_FILE' ) ) {
+			require_once 'includes/functions.php';
+			require_once 'includes/types.php';
+			require_once 'includes/resolvers.php';
 
 			// Require the WPGraphQL classes.
 			if ( function_exists( 'register_graphql_field' ) ) {
